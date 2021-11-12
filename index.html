@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:;base64,=">
+    <title>Socket</title>
+    <script src="https://cdn.socket.io/4.2.0/socket.io.min.js" integrity="sha384-PiBR5S00EtOj2Lto9Uu81cmoyZqR57XcOna1oAuVuIEjzj0wpqDVfD0JA9eXlRsj" crossorigin="anonymous"></script>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+        body {
+            font-family: sans-serif;
+        }
+        .container {
+            max-width: 1140px;
+            margin: 0 auto;
+        }
+        header {
+            height: 80px;
+            background: #24292f;
+            color: aliceblue;
+        }
+        header .container {
+            height: inherit;
+            display: flex;
+            align-items: center;
+            font-size: 17px;
+            letter-spacing: 0.7px;
+        }
+        main {
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            padding: 50px;
+            background: #cdcdcd2e;
+        }
+        form input {
+            width: 200px;
+            padding: 10px;
+        }
+        form button {
+            padding: 10px;
+        }
+        .messages {
+            margin-top: 50px;
+        }
+        .messages p {
+            margin-bottom: 5px;
+        }
+        .messages span {
+            font-size: 15px;
+            color: #0000009e;
+        }
+        .textInfo {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 10px;
+            font-size: 14px;
+        }
+        .textInfo span {
+            color: #0000009e;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <p>Users online: <span class="counter">0</span></p>
+        </div>
+    </header>
+    <main class="container">
+        <div class="textInfo"></div>
+        <form action="#">
+            <input class="form__inp" type="text" placeholder="message" required />
+            <button class="form__btn" type="submit">SUBMIT</button>
+        </form>
+        <div class="messages"></div>
+    </main>
+
+    <script>
+        const socket = io('localhost:5555');
+        const counter = document.querySelector('.counter');
+        const info = document.querySelector('.textInfo');
+        const formEl = document.querySelector('form');
+        const input = document.querySelector('.form__inp');
+        const btn = document.querySelector('.form__btn');
+        const messages = document.querySelector('.messages');
+
+        socket.on('connect', () => {
+            console.log('Connected');
+        });
+
+        socket.on('user_count', usersCounter => {
+            counter.textContent = usersCounter;
+        });
+
+        socket.on('user_connected', data => {
+            info.insertAdjacentHTML('beforeend', `<p>${data.name} connected <span>${data.time}</span></p>`);
+        });
+
+        socket.on('user_disconnected', data => {
+            info.insertAdjacentHTML('beforeend', `<p>${data.name} disconnected <span>${data.time}</span></p>`);
+        });
+
+        socket.on('server_msg', data => {
+            messages.insertAdjacentHTML('afterbegin', `<p><span>${data.name}:</span> ${data.message}</p>`);
+        });
+
+        formEl.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if(input.value) {
+                const data = { message: input.value, };
+                socket.emit('client_msg', data);
+                input.value = '';
+            }
+        });
+
+    </script>
+
+</body>
+</html>
